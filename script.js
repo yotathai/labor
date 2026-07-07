@@ -1,6 +1,20 @@
 let laborData = [];
 let cart = [];
 
+// Semantic Synonyms Mapping
+const synonyms = {
+    "เทปูน": "เทคอนกรีต",
+    "ก่อกำแพง": "ก่ออิฐ",
+    "ตีผัง": "ผัง",
+    "ทำหลังคา": "กระเบื้อง โครงเหล็ก",
+    "ทาสี": "สีน้ำ สีน้ำมัน ทารองพื้น",
+    "ฐานราก": "ขุดดิน ถมดิน ทรายรองพื้น คอนกรีตหยาบ ไม้แบบ",
+    "เข็ม": "เสาเข็ม ตัดหัวเสาเข็ม",
+    "ฉาบปูน": "ฉาบเรียบ",
+    "ประปา": "ท่อพีวีซี ก๊อกน้ำ",
+    "กระเบื้อง": "ปูพื้น ปูผนัง"
+};
+
 // DOM Elements
 const searchInput = document.getElementById('searchInput');
 const tableBody = document.getElementById('tableBody');
@@ -22,41 +36,64 @@ async function loadData() {
         renderTable(laborData);
     } catch (error) {
         console.error('Error loading data:', error);
-        tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:red;">ไม่สามารถโหลดข้อมูลได้ โปรดตรวจสอบไฟล์ labor_data.json</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:red;">ไม่สามารถโหลดข้อมูลได้</td></tr>';
     }
+}
+
+function checkSmartGuards(item) {
+    let guardsHtml = '';
+    const name = item.name || '';
+    const unit = item.unit || '';
+    
+    // Unit Guards
+    if (unit === 'ลบ.ม.' || unit === 'ตร.ม.') {
+        guardsHtml += `<span class="badge" style="background:#e2e8f0; color:#4a5568; margin-right:4px;" title="ระวังการคำนวณหน่วยผิดพลาด">🔍 เช็คหน่วย ${unit}</span>`;
+    }
+    
+    // Logic Guards
+    if (name.includes('ไม้แบบ')) {
+        guardsHtml += `<span class="badge" style="background:#fed7d7; color:#c53030; margin-right:4px;" title="ค่าแรงไม้แบบคิดเต็ม 100% เสมอ ไม่มีการลดทอนตามจำนวนชั้นเหมือนค่าวัสดุ">⚠️ ห้ามลดทอนค่าแรงตามชั้น</span>`;
+    }
+    
+    if (name.includes('ขุดดิน')) {
+        guardsHtml += `<span class="badge" style="background:#feebc8; color:#c05621; margin-right:4px;" title="อย่าลืมคิดเผื่องานถมดินคืนและค่าขนทิ้ง">💡 อย่าลืม: งานถมดินคืน</span>`;
+    }
+
+    if (name.includes('ทาสี') && !name.includes('รองพื้น')) {
+        guardsHtml += `<span class="badge" style="background:#feebc8; color:#c05621; margin-right:4px;" title="อย่าลืมคิดค่าแรงทาสีรองพื้น">💡 อย่าลืม: ทาสีรองพื้น</span>`;
+    }
+
+    return guardsHtml;
 }
 
 // Render Table
 function renderTable(data) {
     tableBody.innerHTML = '';
-    
     if (data.length === 0) {
         noResults.classList.remove('hidden');
         return;
     }
-    
     noResults.classList.add('hidden');
     
-    // Limit to first 100 items for performance unless searched specifically
     const displayData = data.slice(0, 150);
     
     displayData.forEach((item, index) => {
         const tr = document.createElement('tr');
-        
-        // Format price
         const priceStr = item.price.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        const guards = checkSmartGuards(item);
         
         tr.innerHTML = `
             <td>${item.id || '-'}</td>
             <td>
                 <div style="font-weight: 500;">${item.name}</div>
-                <div style="font-size: 12px; color: var(--text-secondary);">${item.category} ${item.subcategory ? '> '+item.subcategory : ''}</div>
+                <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">${item.category} ${item.subcategory ? '> '+item.subcategory : ''}</div>
+                <div>${guards}</div>
             </td>
             <td>${item.unit}</td>
             <td style="color: var(--primary-color); font-weight: 600;">${priceStr}</td>
             <td style="font-size: 12px;">${item.note || '-'}</td>
             <td>
-                <button class="btn-add" onclick="addToCart(${index}, '${escapeQuotes(item.name)}', ${item.price}, '${item.unit}')">+ เลือก</button>
+                <button class="btn-add" onclick="addToCart('${escapeQuotes(item.id)}', '${escapeQuotes(item.name)}', ${item.price}, '${item.unit}')">+ เลือก</button>
             </td>
         `;
         tableBody.appendChild(tr);
@@ -64,52 +101,52 @@ function renderTable(data) {
 }
 
 function escapeQuotes(str) {
+    if(!str) return '';
     return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
 }
 
 // Search
 searchInput.addEventListener('input', (e) => {
-    const searchTerm = e.target.value.toLowerCase().trim();
+    let searchTerm = e.target.value.toLowerCase().trim();
     
     if (searchTerm === '') {
         renderTable(laborData);
         return;
     }
     
+    // Expand search term using synonyms
+    let searchTokens = [searchTerm];
+    for (const [key, value] of Object.entries(synonyms)) {
+        if (key.includes(searchTerm) || searchTerm.includes(key)) {
+            searchTokens = searchTokens.concat(value.split(' '));
+        }
+    }
+    
     const filteredData = laborData.filter(item => {
-        return (item.name && item.name.toLowerCase().includes(searchTerm)) ||
-               (item.category && item.category.toLowerCase().includes(searchTerm)) ||
-               (item.subcategory && item.subcategory.toLowerCase().includes(searchTerm)) ||
-               (item.id && item.id.toLowerCase().includes(searchTerm));
+        const textToSearch = ((item.name||'') + ' ' + (item.category||'') + ' ' + (item.subcategory||'') + ' ' + (item.id||'')).toLowerCase();
+        // Return true if any of the search tokens are found
+        return searchTokens.some(token => textToSearch.includes(token));
     });
     
     renderTable(filteredData);
 });
 
 // Cart Functions
-window.addToCart = function(index, name, price, unit) {
-    // Check if already in cart
+window.addToCart = function(id, name, price, unit) {
     const existing = cart.find(item => item.name === name);
     if (!existing) {
-        cart.push({
-            name: name,
-            price: price,
-            unit: unit,
-            qty: 1
-        });
+        cart.push({ id, name, price, unit, qty: 1 });
         updateCartUI();
-        
-        // Visual feedback
         cartToggle.style.transform = 'scale(1.1)';
-        setTimeout(() => {
-            cartToggle.style.transform = 'scale(1)';
-        }, 200);
+        setTimeout(() => cartToggle.style.transform = 'scale(1)', 200);
+        checkSmartRecommendations();
     }
 };
 
 window.removeFromCart = function(index) {
     cart.splice(index, 1);
     updateCartUI();
+    checkSmartRecommendations();
 };
 
 window.updateQty = function(index, newQty) {
@@ -123,7 +160,6 @@ window.updateQty = function(index, newQty) {
 function updateCartUI() {
     cartCount.textContent = cart.length;
     cartTableBody.innerHTML = '';
-    
     let total = 0;
     
     cart.forEach((item, index) => {
@@ -151,23 +187,96 @@ function updateCartUI() {
     cartTotal.textContent = total.toLocaleString('th-TH', {minimumFractionDigits: 2}) + ' บาท';
 }
 
+function checkSmartRecommendations() {
+    // Basic smart checklist: if they have X but not Y, suggest Y
+    let recommendations = [];
+    const hasItem = (keyword) => cart.some(c => c.name.includes(keyword));
+    
+    if (hasItem('ขุดดิน') && !hasItem('ถมดิน')) {
+        recommendations.push("งานถมดินคืน");
+    }
+    if (hasItem('ไม้แบบ') && !hasItem('เทคอนกรีต') && !hasItem('เทปูน')) {
+        recommendations.push("งานเทคอนกรีต");
+    }
+    
+    // We could display this in the UI, for now we will just log or we can add a small UI element.
+    const recDiv = document.getElementById('recommendationsDiv');
+    if (!recDiv) {
+        const div = document.createElement('div');
+        div.id = 'recommendationsDiv';
+        div.style = 'padding: 12px; background: #ebf8ff; border-bottom: 1px solid var(--border-color); font-size: 13px; color: #2b6cb0;';
+        document.getElementById('cartBody').prepend(div);
+    }
+    const currentRecDiv = document.getElementById('recommendationsDiv');
+    if (recommendations.length > 0) {
+        currentRecDiv.innerHTML = '<strong>💡 ระบบแนะนำเพิ่มเติม:</strong> คุณอาจจะลืมเพิ่ม ' + recommendations.map(r => `<span style="background:#bee3f8; padding:2px 6px; border-radius:4px;">${r}</span>`).join(', ');
+        currentRecDiv.style.display = 'block';
+    } else {
+        currentRecDiv.style.display = 'none';
+    }
+}
+
 // UI Interactions
-function openCart() {
+cartToggle.addEventListener('click', () => {
     cartPanel.classList.add('open');
     overlay.classList.add('show');
-}
+});
 
-function closeCartPanel() {
+closeCart.addEventListener('click', () => {
     cartPanel.classList.remove('open');
     overlay.classList.remove('show');
-}
+});
+overlay.addEventListener('click', () => {
+    cartPanel.classList.remove('open');
+    overlay.classList.remove('show');
+});
 
-cartToggle.addEventListener('click', openCart);
-closeCart.addEventListener('click', closeCartPanel);
-overlay.addEventListener('click', closeCartPanel);
-
+// Export to Excel using SheetJS
 exportBtn.addEventListener('click', () => {
-    window.print();
+    if (cart.length === 0) {
+        alert("ยังไม่มีรายการในตารางรวบรวม");
+        return;
+    }
+    
+    const exportData = cart.map((item, idx) => ({
+        "ลำดับ": idx + 1,
+        "รหัส": item.id || '',
+        "รายการ": item.name,
+        "ปริมาณ": item.qty,
+        "หน่วย": item.unit,
+        "ค่าแรง/หน่วย (บาท)": item.price,
+        "รวมค่าแรง (บาท)": item.price * item.qty
+    }));
+    
+    // Add Total Row
+    const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+    exportData.push({
+        "ลำดับ": "",
+        "รหัส": "",
+        "รายการ": "รวมค่าแรงทั้งหมด",
+        "ปริมาณ": "",
+        "หน่วย": "",
+        "ค่าแรง/หน่วย (บาท)": "",
+        "รวมค่าแรง (บาท)": total
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "บัญชีค่าแรง");
+    
+    // Auto-adjust column widths
+    const wscols = [
+        {wch: 8},  // ลำดับ
+        {wch: 10}, // รหัส
+        {wch: 50}, // รายการ
+        {wch: 10}, // ปริมาณ
+        {wch: 10}, // หน่วย
+        {wch: 20}, // ค่าแรง/หน่วย
+        {wch: 20}  // รวมค่าแรง
+    ];
+    worksheet['!cols'] = wscols;
+
+    XLSX.writeFile(workbook, "Labor_Cost_Yotathai.xlsx");
 });
 
 // Initialize
