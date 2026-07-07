@@ -47,20 +47,20 @@ function checkSmartGuards(item) {
     
     // Unit Guards
     if (unit === 'ลบ.ม.' || unit === 'ตร.ม.') {
-        guardsHtml += `<span class="badge" style="background:#e2e8f0; color:#4a5568; margin-right:4px;" title="ระวังการคำนวณหน่วยผิดพลาด">🔍 เช็คหน่วย ${unit}</span>`;
+        guardsHtml += `<span class="badge info" title="ระวังการคำนวณหน่วยผิดพลาด">🔍 เช็คหน่วย ${unit}</span>`;
     }
     
     // Logic Guards
     if (name.includes('ไม้แบบ')) {
-        guardsHtml += `<span class="badge" style="background:#fed7d7; color:#c53030; margin-right:4px;" title="ค่าแรงไม้แบบคิดเต็ม 100% เสมอ ไม่มีการลดทอนตามจำนวนชั้นเหมือนค่าวัสดุ">⚠️ ห้ามลดทอนค่าแรงตามชั้น</span>`;
+        guardsHtml += `<span class="badge danger" title="ค่าแรงไม้แบบคิดเต็ม 100% เสมอ ไม่มีการลดทอนตามจำนวนชั้นเหมือนค่าวัสดุ">⚠️ ห้ามลดทอนค่าแรงตามชั้น</span>`;
     }
     
     if (name.includes('ขุดดิน')) {
-        guardsHtml += `<span class="badge" style="background:#feebc8; color:#c05621; margin-right:4px;" title="อย่าลืมคิดเผื่องานถมดินคืนและค่าขนทิ้ง">💡 อย่าลืม: งานถมดินคืน</span>`;
+        guardsHtml += `<span class="badge warning" title="อย่าลืมคิดเผื่องานถมดินคืนและค่าขนทิ้ง">💡 อย่าลืม: งานถมดินคืน</span>`;
     }
 
     if (name.includes('ทาสี') && !name.includes('รองพื้น')) {
-        guardsHtml += `<span class="badge" style="background:#feebc8; color:#c05621; margin-right:4px;" title="อย่าลืมคิดค่าแรงทาสีรองพื้น">💡 อย่าลืม: ทาสีรองพื้น</span>`;
+        guardsHtml += `<span class="badge warning" title="อย่าลืมคิดค่าแรงทาสีรองพื้น">💡 อย่าลืม: ทาสีรองพื้น</span>`;
     }
 
     return guardsHtml;
@@ -204,12 +204,12 @@ function checkSmartRecommendations() {
     if (!recDiv) {
         const div = document.createElement('div');
         div.id = 'recommendationsDiv';
-        div.style = 'padding: 12px; background: #ebf8ff; border-bottom: 1px solid var(--border-color); font-size: 13px; color: #2b6cb0;';
+        div.style = 'padding: 15px; background: rgba(59, 130, 246, 0.1); border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; color: #60a5fa;';
         document.getElementById('cartBody').prepend(div);
     }
     const currentRecDiv = document.getElementById('recommendationsDiv');
     if (recommendations.length > 0) {
-        currentRecDiv.innerHTML = '<strong>💡 ระบบแนะนำเพิ่มเติม:</strong> คุณอาจจะลืมเพิ่ม ' + recommendations.map(r => `<span style="background:#bee3f8; padding:2px 6px; border-radius:4px;">${r}</span>`).join(', ');
+        currentRecDiv.innerHTML = '<strong><i class="fas fa-lightbulb"></i> ระบบแนะนำเพิ่มเติม:</strong> คุณอาจจะลืมเพิ่ม ' + recommendations.map(r => `<span style="background:rgba(59, 130, 246, 0.2); padding:2px 8px; border-radius:6px; margin-left:4px; color:#93c5fd;">${r}</span>`).join('');
         currentRecDiv.style.display = 'block';
     } else {
         currentRecDiv.style.display = 'none';

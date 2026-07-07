@@ -3,95 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบค้นหาบัญชีค่าแรงงานก่อสร้าง (ว.480)</title>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Yotathai Labor Cost | ระบบค้นหาค่าแรงอัจฉริยะ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="app-container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <h2>โยธาไทย</h2>
-                <p>ระบบค้นหาบัญชีค่าแรงงาน</p>
+    <!-- Background Elements for Glassmorphism -->
+    <div class="bg-shape shape-1"></div>
+    <div class="bg-shape shape-2"></div>
+    <div class="bg-shape shape-3"></div>
+
+    <div class="container glass-panel">
+        <header class="header">
+            <div class="logo-area">
+                <div class="logo-icon"><i class="fas fa-hard-hat"></i></div>
+                <div>
+                    <h1>YOTATHAI <span class="highlight">LABOR</span></h1>
+                    <p>ระบบค้นหาค่าแรงงานอัจฉริยะสำหรับงานก่อสร้าง (ว.480)</p>
+                </div>
             </div>
             
-            <div class="search-container">
-                <input type="text" id="searchInput" placeholder="ค้นหาค่าแรง (เช่น ขุดดิน, คอนกรีต)...">
+            <div class="search-box">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="searchInput" placeholder="พิมพ์ชื่อรายการ หรือศัพท์หน้างาน เช่น 'เทปูน', 'ตีผัง'...">
             </div>
-            
-            <div class="sidebar-footer">
-                <p>อ้างอิง: บัญชีค่าแรงงานฯ ว.480</p>
-            </div>
-        </aside>
+        </header>
 
-        <!-- Main Content -->
-        <main class="main-content">
-            <header class="main-header">
-                <h1 id="pageTitle">ผลการค้นหา</h1>
-                <div class="cart-summary" id="cartToggle">
-                    <span class="cart-icon">📊</span>
-                    <span id="cartCount" class="badge">0</span>
-                    <span>รายการที่เลือก</span>
-                </div>
-            </header>
-
-            <div class="results-container" id="resultsContainer">
-                <div class="table-responsive">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th width="10%">ลำดับ</th>
-                                <th width="45%">รายการ</th>
-                                <th width="10%">หน่วย</th>
-                                <th width="15%">ค่าแรง (บาท)</th>
-                                <th width="10%">หมายเหตุ</th>
-                                <th width="10%">เลือก</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tableBody">
-                            <!-- Rows will be injected here -->
-                        </tbody>
-                    </table>
-                </div>
-                <div id="noResults" class="no-results hidden">
-                    <p>ไม่พบข้อมูลที่ค้นหา</p>
-                </div>
-            </div>
-        </main>
-        
-        <!-- Cart / Compiler Panel (Slide-over) -->
-        <div class="cart-panel" id="cartPanel">
-            <div class="cart-header">
-                <h2>ตารางรวบรวมค่าแรง</h2>
-                <button class="close-btn" id="closeCart">×</button>
-            </div>
-            <div class="cart-body" id="cartBody">
-                <table class="cart-table">
-                    <thead>
-                        <tr>
-                            <th>รายการ</th>
-                            <th>ปริมาณ</th>
-                            <th>หน่วย</th>
-                            <th>ราคารวม</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody id="cartTableBody">
-                        <!-- Cart items -->
-                    </tbody>
-                </table>
-            </div>
-            <div class="cart-footer">
-                <div class="total-row">
-                    <span>รวมค่าแรงทั้งหมด:</span>
-                    <span id="cartTotal" class="total-amount">0.00 บาท</span>
-                </div>
-                <button class="btn-primary" id="exportBtn">พิมพ์รายการ</button>
+        <div class="table-container">
+            <table id="dataTable">
+                <thead>
+                    <tr>
+                        <th width="8%">รหัส</th>
+                        <th width="42%">รายการ</th>
+                        <th width="10%">หน่วย</th>
+                        <th width="15%">ค่าแรง (บาท)</th>
+                        <th width="15%">หมายเหตุ</th>
+                        <th width="10%" style="text-align: center;">จัดการ</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Data will be populated here -->
+                </tbody>
+            </table>
+            <div id="noResults" class="hidden no-results">
+                <i class="fas fa-box-open" style="font-size: 3rem; color: rgba(255,255,255,0.3); margin-bottom: 1rem;"></i>
+                <p>ไม่พบรายการที่ค้นหา</p>
             </div>
         </div>
-        <div class="overlay" id="overlay"></div>
     </div>
+
+    <!-- Floating Cart Button -->
+    <button id="cartToggle" class="cart-toggle glass-button">
+        <i class="fas fa-clipboard-list"></i>
+        <span class="cart-count" id="cartCount">0</span>
+    </button>
+
+    <!-- Cart Panel -->
+    <div id="cartPanel" class="cart-panel glass-panel">
+        <div class="cart-header">
+            <h2><i class="fas fa-file-invoice-dollar" style="color: var(--accent-color);"></i> รายการคำนวณราคากลาง</h2>
+            <button id="closeCart" class="close-btn"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="cart-body" id="cartBody">
+            <table class="cart-table">
+                <thead>
+                    <tr>
+                        <th width="45%">รายการ</th>
+                        <th width="20%">ปริมาณ</th>
+                        <th width="10%">หน่วย</th>
+                        <th width="20%">รวม (บาท)</th>
+                        <th width="5%"></th>
+                    </tr>
+                </thead>
+                <tbody id="cartTableBody">
+                    <!-- Cart items -->
+                </tbody>
+            </table>
+        </div>
+        <div class="cart-footer">
+            <div class="cart-total-box">
+                <span>รวมค่าแรงทั้งหมด:</span>
+                <span id="cartTotal" class="total-amount">0.00 บาท</span>
+            </div>
+            <button id="exportBtn" class="export-btn">
+                <i class="fas fa-file-excel"></i> ดาวน์โหลด Excel
+            </button>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
     
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="script.js"></script>
