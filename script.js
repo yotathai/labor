@@ -31,7 +31,9 @@ const exportBtn = document.getElementById('exportBtn');
 // Load Data
 async function loadData() {
     try {
-        const response = await fetch('labor_data.json');
+        // Dynamic API Path: รองรับการเปิดผ่าน Gateway (President_Core) ที่ app.yotathai.com/labor/
+        const basePath = window.location.pathname.includes('/labor') ? '/labor/' : './';
+        const response = await fetch(basePath + 'labor_data.json');
         laborData = await response.json();
         renderTable(laborData);
     } catch (error) {
@@ -278,6 +280,32 @@ exportBtn.addEventListener('click', () => {
 
     XLSX.writeFile(workbook, "Labor_Cost_Yotathai.xlsx");
 });
+
+// Export as JSON for integration
+const exportJsonBtn = document.getElementById('exportJsonBtn');
+if (exportJsonBtn) {
+    exportJsonBtn.addEventListener('click', () => {
+        if (cart.length === 0) {
+            alert("ยังไม่มีรายการในตารางรวบรวม");
+            return;
+        }
+        
+        const jsonData = JSON.stringify(cart, null, 2);
+        navigator.clipboard.writeText(jsonData).then(() => {
+            const originalText = exportJsonBtn.innerHTML;
+            exportJsonBtn.innerHTML = '<i class="fas fa-check"></i> คัดลอกสำเร็จ!';
+            exportJsonBtn.style.background = 'rgba(16, 185, 129, 0.2)';
+            
+            setTimeout(() => {
+                exportJsonBtn.innerHTML = originalText;
+                exportJsonBtn.style.background = 'rgba(147, 197, 253, 0.2)';
+            }, 2000);
+        }).catch(err => {
+            console.error('Failed to copy text: ', err);
+            alert("ไม่สามารถคัดลอกข้อมูลได้");
+        });
+    });
+}
 
 // Initialize
 loadData();
